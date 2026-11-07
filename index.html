@@ -8,7 +8,7 @@
         /* --- ДИЗАЙН (CSS) --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e130c 0%, #9a8478 100%); /* Темный киношный фон */
+            background: linear-gradient(135deg, #1e130c 0%, #9a8478 100%);
             color: white;
             margin: 0;
             padding: 0;
@@ -19,7 +19,7 @@
         }
 
         .container {
-            background-color: rgba(255, 255, 255, 0.1); /* Полупрозрачный фон */
+            background-color: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             padding: 30px;
             border-radius: 20px;
@@ -31,7 +31,6 @@
             margin-bottom: 40px;
         }
 
-        /* Стили для превью-картинки */
         .preview-img {
             width: 100%;
             max-height: 300px;
@@ -39,7 +38,7 @@
             border-radius: 15px;
             margin-bottom: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.6);
-            border: 3px solid #ffcc00; /* Золотая рамка, как в кино */
+            border: 3px solid #ffcc00;
         }
 
         h1 {
@@ -47,7 +46,6 @@
             margin-top: 0;
         }
 
-        /* Стили для кнопок выбора фильма */
         .movie-option {
             display: block;
             width: 100%;
@@ -69,9 +67,9 @@
             transform: scale(1.02);
         }
 
-        /* Блок с результатами (скрыт по умолчанию) */
+        /* Скрываем экран результатов через CSS */
         #result-screen {
-            display: none; /* Изначально невидим */
+            display: none;
         }
 
         .winner-title {
@@ -82,7 +80,6 @@
             text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
         }
 
-        /* Кнопка перезапуска */
         .reset-btn {
             margin-top: 20px;
             padding: 10px 20px;
@@ -109,7 +106,7 @@
         <div id="poll-screen">
             <h1>Что будем смотреть?</h1>
             
-            <!-- Превью картинка. Если картинки нет, будет показан alt текст -->
+            <!-- Превью картинка. Обрати внимание на popcorn.jpg.jpg -->
             <img src="popcorn.jpg.jpg" alt="Кино-вечер" class="preview-img">
             
             <p>Выбери фильм, который ты хочешь посмотреть сегодня вечером:</p>
@@ -120,8 +117,8 @@
             <button class="movie-option" onclick="vote('Очень страшное кино')">Очень страшное кино (Комедия)</button>
         </div>
 
-        <!-- Экран с результатами (появится после голосования) -->
-        <div id="result-screen">
+        <!-- Экран с результатами. style="display: none;" скрывает его принудительно -->
+        <div id="result-screen" style="display: none;">
             <h2>Голосование завершено!</h2>
             <p>Твой выбор записан.</p>
             <div class="winner-title" id="winner-text">Лучший фильм: ...</div>
@@ -140,16 +137,12 @@
             'Очень страшное кино': 0
         };
 
-        // Функция, которая срабатывает при клике на фильм
         function vote(movieName) {
-            // 1. Добавляем голос выбранному фильму
             votes[movieName]++;
 
-            // 2. Скрываем экран опроса и показываем экран результатов
             document.getElementById('poll-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
 
-            // 3. Находим фильм с наибольшим количеством голосов
             let winner = '';
             let maxVotes = -1;
 
@@ -160,18 +153,14 @@
                 }
             }
 
-            // 4. Выводим победителя на экран
             document.getElementById('winner-text').innerText = `Лучший фильм: ${winner}!`;
         }
 
-        // Функция для сброса (чтобы можно было проголосовать заново)
         function resetPoll() {
-            // Сбрасываем счетчики
             for (let movie in votes) {
                 votes[movie] = 0;
             }
             
-            // Показываем опрос, скрываем результаты
             document.getElementById('poll-screen').style.display = 'block';
             document.getElementById('result-screen').style.display = 'none';
         }
