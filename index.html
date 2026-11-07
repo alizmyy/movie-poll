@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кино-опрос: Что будем смотреть?</title>
+    <style>
+        /* --- ДИЗАЙН (CSS) --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e130c 0%, #9a8478 100%); /* Темный киношный фон */
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.1); /* Полупрозрачный фон */
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        /* Стили для превью-картинки */
+        .preview-img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+            border: 3px solid #ffcc00; /* Золотая рамка, как в кино */
+        }
+
+        h1 {
+            color: #ffcc00;
+            margin-top: 0;
+        }
+
+        /* Стили для кнопок выбора фильма */
+        .movie-option {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #333;
+            color: white;
+            border: 2px solid #555;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .movie-option:hover {
+            background-color: #ffcc00;
+            color: black;
+            border-color: #ffcc00;
+            transform: scale(1.02);
+        }
+
+        /* Блок с результатами (скрыт по умолчанию) */
+        #result-screen {
+            display: none; /* Изначально невидим */
+        }
+
+        .winner-title {
+            font-size: 28px;
+            color: #ffcc00;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+
+        /* Кнопка перезапуска */
+        .reset-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: transparent;
+            color: #ffcc00;
+            border: 2px solid #ffcc00;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .reset-btn:hover {
+            background-color: #ffcc00;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Экран с опросом -->
+        <div id="poll-screen">
+            <h1>Что будем смотреть?</h1>
+            
+            <!-- Превью картинка. Если картинки нет, будет показан alt текст -->
+            <img src="popcorn.jpg.jpg" alt="Кино-вечер" class="preview-img">
+            
+            <p>Выбери фильм, который ты хочешь посмотреть сегодня вечером:</p>
+            
+            <button class="movie-option" onclick="vote('Интерстеллар')">Интерстеллар (Sci-Fi)</button>
+            <button class="movie-option" onclick="vote('Джон Уик')">Джон Уик (Боевик)</button>
+            <button class="movie-option" onclick="vote('Властелин колец')">Властелин колец (Фэнтези)</button>
+            <button class="movie-option" onclick="vote('Очень страшное кино')">Очень страшное кино (Комедия)</button>
+        </div>
+
+        <!-- Экран с результатами (появится после голосования) -->
+        <div id="result-screen">
+            <h2>Голосование завершено!</h2>
+            <p>Твой выбор записан.</p>
+            <div class="winner-title" id="winner-text">Лучший фильм: ...</div>
+            <button class="reset-btn" onclick="resetPoll()">Проголосовать еще раз</button>
+        </div>
+
+    </div>
+
+    <!-- --- ЛОГИКА (JavaScript) --- -->
+    <script>
+        // Объект, где мы будем хранить голоса
+        let votes = {
+            'Интерстеллар': 0,
+            'Джон Уик': 0,
+            'Властелин колец': 0,
+            'Очень страшное кино': 0
+        };
+
+        // Функция, которая срабатывает при клике на фильм
+        function vote(movieName) {
+            // 1. Добавляем голос выбранному фильму
+            votes[movieName]++;
+
+            // 2. Скрываем экран опроса и показываем экран результатов
+            document.getElementById('poll-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+
+            // 3. Находим фильм с наибольшим количеством голосов
+            let winner = '';
+            let maxVotes = -1;
+
+            for (let movie in votes) {
+                if (votes[movie] > maxVotes) {
+                    maxVotes = votes[movie];
+                    winner = movie;
+                }
+            }
+
+            // 4. Выводим победителя на экран
+            document.getElementById('winner-text').innerText = `Лучший фильм: ${winner}!`;
+        }
+
+        // Функция для сброса (чтобы можно было проголосовать заново)
+        function resetPoll() {
+            // Сбрасываем счетчики
+            for (let movie in votes) {
+                votes[movie] = 0;
+            }
+            
+            // Показываем опрос, скрываем результаты
+            document.getElementById('poll-screen').style.display = 'block';
+            document.getElementById('result-screen').style.display = 'none';
+        }
+    </script>
+
+</body>
+</html>
