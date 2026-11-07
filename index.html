@@ -46,10 +46,11 @@
             margin-top: 0;
         }
 
+        /* Стили для кнопок */
         .movie-option {
             display: block;
             width: 100%;
-            padding: 15px;
+            padding: 12px 15px;
             margin: 10px 0;
             background-color: #333;
             color: white;
@@ -58,6 +59,10 @@
             font-size: 18px;
             cursor: pointer;
             transition: all 0.3s ease;
+            text-align: left; /* Текст по левому краю для удобства */
+            display: flex;
+            justify-content: space-between; /* Название слева, счетчик справа */
+            align-items: center;
         }
 
         .movie-option:hover {
@@ -67,7 +72,20 @@
             transform: scale(1.02);
         }
 
-        /* Скрываем экран результатов через CSS */
+        .vote-count {
+            font-weight: bold;
+            background-color: #555;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 16px;
+        }
+
+        .movie-option:hover .vote-count {
+            background-color: #333;
+            color: #ffcc00;
+        }
+
+        /* Экран результатов */
         #result-screen {
             display: none;
         }
@@ -106,22 +124,34 @@
         <div id="poll-screen">
             <h1>Что будем смотреть?</h1>
             
-            <!-- Превью картинка. Обрати внимание на popcorn.jpg.jpg -->
             <img src="popcorn.jpg.jpg" alt="Кино-вечер" class="preview-img">
             
             <p>Выбери фильм, который ты хочешь посмотреть сегодня вечером:</p>
             
-            <button class="movie-option" onclick="vote('Интерстеллар')">Интерстеллар (Sci-Fi)</button>
-            <button class="movie-option" onclick="vote('Джон Уик')">Джон Уик (Боевик)</button>
-            <button class="movie-option" onclick="vote('Властелин колец')">Властелин колец (Фэнтези)</button>
-            <button class="movie-option" onclick="vote('Очень страшное кино')">Очень страшное кино (Комедия)</button>
+            <!-- Кнопки с фильмами (добавил span для вывода голосов) -->
+            <button class="movie-option" onclick="vote('Интерстеллар')">
+                Интерстеллар (Sci-Fi) <span class="vote-count" id="count-Интерстеллар">0</span>
+            </button>
+            <button class="movie-option" onclick="vote('Джон Уик')">
+                Джон Уик (Боевик) <span class="vote-count" id="count-Джон Уик">0</span>
+            </button>
+            <button class="movie-option" onclick="vote('Властелин колец')">
+                Властелин колец (Фэнтези) <span class="vote-count" id="count-Властелин колец">0</span>
+            </button>
+            <button class="movie-option" onclick="vote('Очень страшное кино')">
+                Очень страшное кино (Комедия) <span class="vote-count" id="count-Очень страшное кино">0</span>
+            </button>
         </div>
 
-        <!-- Экран с результатами. style="display: none;" скрывает его принудительно -->
-        <div id="result-screen" style="display: none;">
+        <!-- Экран с результатами -->
+        <div id="result-screen">
             <h2>Голосование завершено!</h2>
             <p>Твой выбор записан.</p>
             <div class="winner-title" id="winner-text">Лучший фильм: ...</div>
+            
+            <!-- Блок для вывода статистики по всем фильмам -->
+            <div id="all-votes" style="margin-top: 20px; font-size: 18px; line-height: 1.8; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;"></div>
+            
             <button class="reset-btn" onclick="resetPoll()">Проголосовать еще раз</button>
         </div>
 
@@ -129,41 +159,98 @@
 
     <!-- --- ЛОГИКА (JavaScript) --- -->
     <script>
-        // Объект, где мы будем хранить голоса
-        let votes = {
-            'Интерстеллар': 0,
-            'Джон Уик': 0,
-            'Властелин колец': 0,
-            'Очень страшное кино': 0
-        };
+        // ВНИМАНИЕ: Эти данные лучше скрыть перед публикацией!
+        const BIN_ID = "6aef25d7ac6210605a7544f3"; 
+        const API_KEY = "$2a$10$K4CqcHG4476JUFAC1LfJPuGQqvTlhDSD/LRR4GNMwddf1/rKYSiMe"; 
 
-        function vote(movieName) {
-            votes[movieName]++;
+        const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
+        // Функция получения голосов с сервера
+        async function getVotes() {
+            try {
+                const response = await fetch(`${API_URL}/latest`, {
+                    headers: { 'X-Master-Key': API_KEY }
+                });
+                const data = await response.json();
+                return data.record; 
+            } catch (error) {
+                console.error("Ошибка загрузки:", error);
+                // Возвращаем нули, если сервер недоступен
+                return { 'Интерстеллар': 0, 'Джон Уик': 0, 'Властелин колец': 0, 'Очень страшное кино': 0 };
+            }
+        }
+
+        // Функция обновления счетчиков на кнопках
+        async function updateCounters() {
+            const currentVotes = await getVotes();
+            for (let movie in currentVotes) {
+                const spanId = `count-${movie}`;
+                const spanElement = document.getElementById(spanId);
+                if (spanElement) {
+                    spanElement.innerText = currentVotes[movie];
+                }
+            }
+        }
+
+        // Функция голосования
+        async function vote(movieName) {
+            let currentVotes = await getVotes();
+            currentVotes[movieName]++;
+
+            // Отправляем обновленные данные на сервер
+            try {
+                await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify(currentVotes)
+                });
+            } catch (error) {
+                console.error("Ошибка сохранения:", error);
+            }
+
+            // Меняем экраны
             document.getElementById('poll-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
 
+            // Ищем победителя
             let winner = '';
             let maxVotes = -1;
+            let statsHtml = '';
 
-            for (let movie in votes) {
-                if (votes[movie] > maxVotes) {
-                    maxVotes = votes[movie];
+            for (let movie in currentVotes) {
+                // Формируем статистику для экрана результатов
+                statsHtml += `<div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>${movie}</span>
+                                <span style="color: #ffcc00; font-weight: bold;">${currentVotes[movie]} гол.</span>
+                              </div>`;
+
+                // Ищем победителя
+                if (currentVotes[movie] > maxVotes) {
+                    maxVotes = currentVotes[movie];
                     winner = movie;
                 }
             }
 
-            document.getElementById('winner-text').innerText = `Лучший фильм: ${winner}!`;
+            // Выводим победителя и общую статистику
+            document.getElementById('winner-text').innerHTML = `Лучший фильм: ${winner}!<br><span style="font-size: 18px; color: white;">(Голосов: ${maxVotes})</span>`;
+            document.getElementById('all-votes').innerHTML = statsHtml;
         }
 
+        // Сброс экрана
         function resetPoll() {
-            for (let movie in votes) {
-                votes[movie] = 0;
-            }
-            
             document.getElementById('poll-screen').style.display = 'block';
             document.getElementById('result-screen').style.display = 'none';
+            // Обновляем счетчики на кнопках при возврате
+            updateCounters(); 
         }
+
+        // При загрузке страницы сразу загружаем актуальные голоса
+        window.onload = function() {
+            updateCounters();
+        };
     </script>
 
 </body>
